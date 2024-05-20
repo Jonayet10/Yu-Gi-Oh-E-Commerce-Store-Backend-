@@ -4,75 +4,126 @@
     const BASE_URL = 'https://db.ygoprodeck.com/api/v7/cardinfo.php?';
 
     async function init() {
-        await fetchCards('name', 'Blue-Eyes White Dragon', 5);
+        // Get form UI element from HTML
+        const form = document.getElementById('filter-form');
+        // Add event listener to form to handle submit event
+        form.addEventListener('submit', async (event) => {
+            // Prevent default form submission behavior
+            event.preventDefault();
+            // Holds the search parameters, extracting values from the form fields
+            const params = {
+                name: form.elements['name'].value,
+                type: form.elements['type'].value,
+                race: form.elements['race'].value,
+                attribute: form.elements['attribute'].value,
+                archetype: form.elements['archetype'].value
+            };
+            // Call fetchCards with the paramaters from the form user fills out
+            await fetchCards(params);
+        });
     }
     
-    async function fetchCards(attribute, name, number) {
-        const query = encodeURIComponent(name);
-        const url = `${BASE_URL}${attribute}=${query}`;
+    async function fetchCards(params) {
+        // Builds query by filtering out undefined, null, or empty parameters, and appends params
+        // to base URL
+        let query = Object.keys(params)
+            .filter(key => params[key] !== undefined && params[key] !== null && params[key] !== '')
+            .map(key => `${key}=${encodeURIComponent(params[key])}`)
+            .join('&');
 
-        let resp = await fetch(url, {
+        const url = `${BASE_URL}${query}`;
+        console.log(`Fetching URL: ${url}`);
+       
+        // Performs API request with response handling (checkStatus)
+        fetch(url, {
             method: "GET",
         })
         .then(checkStatus)
         .then(response => response.json())
-        .then(function(response) {
-            console.log(response);
+        .then(response => {
+            // Obtain elements for displaying cards and no cards message from HTML
+            const cardElement = document.getElementById('card-details');
+            const noCardsMessage = document.getElementById('no-cards-message');
+
+            // Checks if the response has any cards
+            if (response.data && response.data.length > 0) {
+                // Shuffle the array of cards to randomize every time query is made
+                const shuffledCards = shuffleArray(response.data);
+                // Select first 8 cards for the store
+                const cards = shuffledCards.slice(0, 8);
+                // Display new card details
+                displayCardDetails(cards);
+                // Hide the no cards message
+                noCardsMessage.classList.add('hidden');
+                noCardsMessage.classList.remove('visible');
+            } else {
+                // Clear previous card details
+                cardElement.innerHTML = '';
+                // Show no cards message
+                noCardsMessage.classList.add('visible');
+                noCardsMessage.classList.remove('hidden');
+            }
         })
-        .catch(handleError);
-
-        // console.log(resp);
+        .catch(error => {
+            handleError(error);
+            const cardElement = document.getElementById('card-details');
+            const noCardsMessage = document.getElementById('no-cards-message');
+            // Clear any previous card details
+            cardElement.innerHTML = '';
+            // Show no cards message when error
+            noCardsMessage.classList.add('visible');
+            noCardsMessage.classList.remove('hidden');
+        });
     }
     
-    function displayCardDetails(card) {
+    function displayCardDetails(cards) {
         const cardElement = document.getElementById('card-details');
-        cardElement.innerHTML = ''; // Clear previous content
-    
-        const nameElement = document.createElement('h2');
-        nameElement.textContent = card.name;
-    
-        const imageElement = document.createElement('img');
-        // We can see from the API documentation that card_images is a key in the dictionary
-        // that is the value of data key (outer dictionary), and the value of card_images is also
-        // a dictionary with image_url as one of the keys
-        imageElement.src = card.card_images[0].image_url;
-        imageElement.alt = card.name;
-    
-        const typeElement = document.createElement('p');
-        typeElement.textContent = 'Type: ' + card.type;
-    
-        const archetypeElement = document.createElement('p');
-        archetypeElement.textContent = 'Archetype: ' + (card.archetype || 'N/A');
-    
-        cardElement.appendChild(nameElement);
-        cardElement.appendChild(imageElement);
-        cardElement.appendChild(typeElement);
-        cardElement.appendChild(archetypeElement);
+        cardElement.innerHTML = ''; 
+
+        cards.forEach(card => {
+            const cardContainer = document.createElement('div');
+            cardContainer.className = 'card-container';
+
+            const nameElement = document.createElement('h2');
+            nameElement.textContent = card.name;
+
+            const imageElement = document.createElement('img');
+            imageElement.src = card.card_images[0].image_url;
+            imageElement.alt = card.name;
+
+            const typeElement = document.createElement('p');
+            typeElement.textContent = 'Type: ' + card.type;
+
+            const archetypeElement = document.createElement('p');
+            archetypeElement.textContent = 'Archetype: ' + (card.archetype || 'N/A');
+
+            cardContainer.appendChild(nameElement);
+            cardContainer.appendChild(imageElement);
+            cardContainer.appendChild(typeElement);
+            cardContainer.appendChild(archetypeElement);
+
+            cardElement.appendChild(cardContainer);
+        });
     }
 
-    // Change as to not copy
     function checkStatus(response) {
-        if (!response.ok) { // response.status >= 200 && response.status < 300
+        if (!response.ok) {
             throw Error(`Error in request: ${response.statusText}`);
-        } // else, we got a response back with a good status code (e.g. 200)
-        return response; // A resolved Response object.
+        }
+        return response;
     }
 
-    // Change as to not copy
     function handleError(errMsg) {
-        if (typeof errMsg === "string") {
-            // qs("#message-area").textContent = errMsg;
-            console.log(errMsg);
-        } else {
-            console.log("Hi");
-            // the err object was passed, don't want to show it on the page;
-            // instead use generic error message.
-            // qs("#message-area").textContent =
-            //     "An error ocurred fetching the Spotify data. Please try again later.";
+        console.error(errMsg);
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-        // qs("#message-area").classList.remove("hidden");
+        return array;
     }
     
     init();
-    
 })();
