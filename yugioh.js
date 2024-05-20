@@ -4,47 +4,24 @@
     const BASE_URL = 'https://db.ygoprodeck.com/api/v7/cardinfo.php?';
 
     async function init() {
-        await fetchCardByName('Blue-Eyes White Dragon'); // Fetch by card name
+        await fetchCards('name', 'Blue-Eyes White Dragon', 5);
     }
     
-    async function fetchCardByName(name) {
-        // const endpoint = new URL(BASE_URL);
-        // Use the 'name' parameter to search by card name
-        // endpoint.searchParams.append('name', cardName);
-        // searchParams.append quatomatically manages the query string formatting, which includes
-        // adding the '?' character before the query parameters
-    
-        // try {
-        //     const resp = await fetch(endpoint);
-        //     if (!resp.ok) {
-        //         throw new Error(`HTTP error! status: ${resp.statusText}`);
-        //     }
-        //     const data = await resp.json();
-        //     // Looking at API documentation, we see that the json is in the form with data as a key
-        //     if (data.data && data.data.length > 0) {
-        //         console.log('Card details:', data.data[0]);
-        //         displayCardDetails(data.data[0]);
-        //         return data.data[0]; // Return details of the first card found
-        //     } else {
-        //         console.log('No card found with the name:', cardName);
-        //     }
-        // } catch (err) {
-        //     console.error('Failed to fetch card details:', err);
-        // }
-
-        // let resp = await fetch(BASE_URL)
-
+    async function fetchCards(attribute, name, number) {
         const query = encodeURIComponent(name);
-        const url = `${BASE_URL}name=${query}`;
+        const url = `${BASE_URL}${attribute}=${query}`;
 
         let resp = await fetch(url, {
             method: "GET",
         })
         .then(checkStatus)
         .then(response => response.json())
+        .then(function(response) {
+            console.log(response);
+        })
         .catch(handleError);
 
-        console.log(resp);
+        // console.log(resp);
     }
     
     function displayCardDetails(card) {
@@ -85,7 +62,7 @@
     function handleError(errMsg) {
         if (typeof errMsg === "string") {
             // qs("#message-area").textContent = errMsg;
-            console.log("Hi");
+            console.log(errMsg);
         } else {
             console.log("Hi");
             // the err object was passed, don't want to show it on the page;
