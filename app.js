@@ -2,7 +2,7 @@ const express = require('express');
 // Cite: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS 
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs/promises');
 const app = express();
 const port = 3000;
 
@@ -10,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from the 'public' directory
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve the main index.html file
@@ -18,9 +19,9 @@ app.get('/', (req, res) => {
 });
 
 // Function to read cards data from cards.json file
-const readCardsFromFile = () => {
+const readCardsFromFile = async () => {
     try {
-        const data = fs.readFileSync(path.join(__dirname, 'cards.json'), 'utf8');
+        const data = await fs.readFile(path.join(__dirname, 'cards.json'), 'utf8');
         return JSON.parse(data);
     } catch (err) {
         console.error('Error reading cards data:', err);
@@ -29,13 +30,12 @@ const readCardsFromFile = () => {
 };
 
 // Get all cards
-app.get('/api/cards', (req, res) => {
-    let cards = readCardsFromFile();
+app.get('/api/cards', async (req, res) => {
+    let cards = await readCardsFromFile();
     let filteredCards = cards;
 
-    // Filter by query parameters
     if (req.query.name) {
-        filteredCards = filteredCards.filter(card => 
+        filteredCards = filteredCards.filter(card =>
             card.name.toLowerCase().includes(req.query.name.toLowerCase()));
     }
     if (req.query.type) {
@@ -45,11 +45,11 @@ app.get('/api/cards', (req, res) => {
         filteredCards = filteredCards.filter(card => card.level == req.query.level);
     }
     if (req.query.attribute) {
-        filteredCards = filteredCards.filter(card => card.attribute.toLowerCase() === 
-        req.query.attribute.toLowerCase());
+        filteredCards = filteredCards.filter(card => card.attribute.toLowerCase() ===
+            req.query.attribute.toLowerCase());
     }
     if (req.query.archetype) {
-        filteredCards = filteredCards.filter(card => card.archetype && 
+        filteredCards = filteredCards.filter(card => card.archetype &&
             card.archetype.toLowerCase().includes(req.query.archetype.toLowerCase()));
     }
 
@@ -57,22 +57,20 @@ app.get('/api/cards', (req, res) => {
     res.json(filteredCards);
 });
 
-
 // Get card by ID
-app.get('/api/cards/:id', (req, res) => {
-    const cards = readCardsFromFile();
+app.get('/api/cards/:id', async (req, res) => {
+    const cards = await readCardsFromFile();
     const card = cards.find(c => c.id === parseInt(req.params.id));
     if (!card) {
-        res.status(404).setHeader('Content-Type', 'application/json').send(JSON.stringify({ error: 'Card not found' }));
+        res.status(404).json({ error: 'Card not found' });
         return;
     }
-    res.setHeader('Content-Type', 'application/json');
     res.json(card);
 });
 
 // Create a new card
-app.post('/api/cards', (req, res) => {
-    const cards = readCardsFromFile();
+app.post('/api/cards', async (req, res) => {
+    const cards = await readCardsFromFile();
     const card = {
         id: cards.length + 1,
         name: req.body.name,
@@ -85,17 +83,16 @@ app.post('/api/cards', (req, res) => {
     };
 
     cards.push(card);
-    fs.writeFileSync(path.join(__dirname, 'cards.json'), JSON.stringify(cards, null, 2));
-    res.status(201).setHeader('Content-Type', 'application/json');
-    res.json(card);
+    await fs.writeFile(path.join(__dirname, 'cards.json'), JSON.stringify(cards, null, 2));
+    res.status(201).json(card);
 });
 
 // Update a card
-app.put('/api/cards/:id', (req, res) => {
-    const cards = readCardsFromFile();
+app.put('/api/cards/:id', async (req, res) => {
+    const cards = await readCardsFromFile();
     const card = cards.find(c => c.id === parseInt(req.params.id));
     if (!card) {
-        res.status(404).setHeader('Content-Type', 'application/json').send(JSON.stringify({ error: 'Card not found' }));
+        res.status(404).json({ error: 'Card not found' });
         return;
     }
 
@@ -107,28 +104,26 @@ app.put('/api/cards/:id', (req, res) => {
     card.price = req.body.price;
     card.image_url = req.body.image_url;
 
-    fs.writeFileSync(path.join(__dirname, 'cards.json'), JSON.stringify(cards, null, 2));
-    res.setHeader('Content-Type', 'application/json');
+    await fs.writeFile(path.join(__dirname, 'cards.json'), JSON.stringify(cards, null, 2));
     res.json(card);
 });
 
 // Delete a card
-app.delete('/api/cards/:id', (req, res) => {
-    let cards = readCardsFromFile();
+app.delete('/api/cards/:id', async (req, res) => {
+    let cards = await readCardsFromFile();
     const card = cards.find(c => c.id === parseInt(req.params.id));
     if (!card) {
-        res.status(404).setHeader('Content-Type', 'application/json').send(JSON.stringify({ error: 'Card not found' }));
+        res.status(404).json({ error: 'Card not found' });
         return;
     }
 
     cards = cards.filter(c => c.id !== parseInt(req.params.id));
-    fs.writeFileSync(path.join(__dirname, 'cards.json'), JSON.stringify(cards, null, 2));
-    res.setHeader('Content-Type', 'application/json');
+    await fs.writeFile(path.join(__dirname, 'cards.json'), JSON.stringify(cards, null, 2));
     res.json(card);
 });
 
 // Create a new feedback
-app.post('/api/feedback', (req, res) => {
+app.post('/api/feedback', async (req, res) => {
     const feedback = {
         id: Date.now(),
         name: req.body.name,
@@ -138,14 +133,14 @@ app.post('/api/feedback', (req, res) => {
 
     let feedbacks = [];
     try {
-        const data = fs.readFileSync(path.join(__dirname, 'feedback.json'), 'utf8');
+        const data = await fs.readFile(path.join(__dirname, 'feedback.json'), 'utf8');
         feedbacks = JSON.parse(data);
     } catch (err) {
         console.error('Error reading feedback data:', err);
     }
 
     feedbacks.push(feedback);
-    fs.writeFileSync(path.join(__dirname, 'feedback.json'), JSON.stringify(feedbacks, null, 2));
+    await fs.writeFile(path.join(__dirname, 'feedback.json'), JSON.stringify(feedbacks, null, 2));
     res.status(201).json(feedback);
 });
 
@@ -155,9 +150,9 @@ app.get('/faq', (req, res) => {
 });
 
 // Read FAQ data from faq.json file
-const readFAQFromFile = () => {
+const readFAQFromFile = async () => {
     try {
-        const data = fs.readFileSync(path.join(__dirname, 'faq.json'), 'utf8');
+        const data = await fs.readFile(path.join(__dirname, 'faq.json'), 'utf8');
         return JSON.parse(data);
     } catch (err) {
         console.error('Error reading FAQ data:', err);
@@ -166,17 +161,15 @@ const readFAQFromFile = () => {
 };
 
 // Get all FAQs
-app.get('/api/faq', (req, res) => {
-    const faqs = readFAQFromFile();
-    res.setHeader('Content-Type', 'application/json');
+app.get('/api/faq', async (req, res) => {
+    const faqs = await readFAQFromFile();
     res.json(faqs);
 });
 
 // Get promo cards
-app.get('/api/promos', (req, res) => {
-    const cards = readCardsFromFile();
+app.get('/api/promos', async (req, res) => {
+    const cards = await readCardsFromFile();
     const promoCards = cards.filter(card => card.sale_price !== null);
-    res.setHeader('Content-Type', 'application/json');
     res.json(promoCards);
 });
 
