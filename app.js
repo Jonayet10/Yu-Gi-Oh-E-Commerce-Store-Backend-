@@ -6,6 +6,9 @@ const PORT = 3000;
 const SERVER_ERROR = 'Could not read data file. Please try again later.';
 const CARD_ERROR = 'Card not found.';
 
+// Add JSON parsing middleware
+app.use(express.json());
+
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 
