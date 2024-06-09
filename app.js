@@ -73,7 +73,7 @@ app.get('/api/cards/:id', async (req, res, next) => {
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
         if (!req.params.id) {
-            raiseError(Error(), res, next, CARD_ID_ERROR_CODE, INVALID_ID_ERROR);
+            raiseError(Error(), res, next, PARAM_ERROR_CODE, INVALID_ID_ERROR);
             return;
         }
 
@@ -146,7 +146,7 @@ app.put('/api/cards/:id', async (req, res, next) => {
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
         if (!req.params.id) {
-            raiseError(Error(), res, next, CARD_ID_ERROR_CODE, INVALID_ID_ERROR);
+            raiseError(Error(), res, next, PARAM_ERROR_CODE, INVALID_ID_ERROR);
             return;
         }
 
@@ -189,7 +189,7 @@ app.delete('/api/cards/:id', async (req, res, next) => {
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
         if (!req.params.id) {
-            raiseError(Error(), res, next, CARD_ID_ERROR_CODE, INVALID_ID_ERROR);
+            raiseError(Error(), res, next, PARAM_ERROR_CODE, INVALID_ID_ERROR);
             return;
         }
 
