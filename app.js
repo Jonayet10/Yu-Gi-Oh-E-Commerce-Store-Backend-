@@ -14,7 +14,7 @@ app.use(express.static('public'));
 
 // Get all cards
 app.get('/api/cards', async (req, res) => {
-    const cards = await readFromFile('cards.json');
+    const cards = await readFromFile('cards.json', res);
 
     if (cards) {
         let filteredCards = cards;
@@ -30,8 +30,8 @@ app.get('/api/cards', async (req, res) => {
             filteredCards = filteredCards.filter(card => card.level == req.query.level);
         }
         if (req.query.attribute) {
-            filteredCards = filteredCards.filter(card => card.attribute.toLowerCase() ===
-                req.query.attribute.toLowerCase());
+            filteredCards = filteredCards.filter(card => card.attribute && 
+                card.attribute.toLowerCase() === req.query.attribute.toLowerCase());
         }
         if (req.query.archetype) {
             filteredCards = filteredCards.filter(card => card.archetype &&
@@ -44,7 +44,7 @@ app.get('/api/cards', async (req, res) => {
 
 // Get card by ID
 app.get('/api/cards/:id', async (req, res) => {
-    const cards = await readFromFile('cards.json');
+    const cards = await readFromFile('cards.json', res);
 
     if (cards) {
         const card = cards.find(c => c.id === parseInt(req.params.id));
@@ -58,7 +58,7 @@ app.get('/api/cards/:id', async (req, res) => {
 
 // Create a new card
 app.post('/api/cards', async (req, res) => {
-    const cards = await readFromFile('cards.json');
+    const cards = await readFromFile('cards.json', res);
 
     if (cards) {
         const card = {
@@ -82,7 +82,7 @@ app.post('/api/cards', async (req, res) => {
 
 // Update a card
 app.put('/api/cards/:id', async (req, res) => {
-    const cards = await readFromFile('cards.json');
+    const cards = await readFromFile('cards.json', res);
 
     if (cards) {
         const card = cards.find(c => c.id === parseInt(req.params.id));
@@ -107,7 +107,7 @@ app.put('/api/cards/:id', async (req, res) => {
 
 // Delete a card
 app.delete('/api/cards/:id', async (req, res) => {
-    const cards = await readFromFile('cards.json');
+    let cards = await readFromFile('cards.json', res);
 
     if (cards) {
         const card = cards.find(c => c.id === parseInt(req.params.id));
@@ -126,7 +126,7 @@ app.delete('/api/cards/:id', async (req, res) => {
 
 // Create a new feedback
 app.post('/api/feedback', async (req, res) => {
-    let feedbacks = await readFromFile('feedback.json');
+    let feedbacks = await readFromFile('feedback.json', res);
 
     if (feedbacks) {
         const feedback = {
@@ -146,7 +146,7 @@ app.post('/api/feedback', async (req, res) => {
 
 // Get all FAQs
 app.get('/api/faq', async (req, res) => {
-    const faqs = await readFromFile('faq.json');
+    const faqs = await readFromFile('faq.json', res);
     if (faqs) {
         res.json(faqs);
     }
@@ -154,28 +154,31 @@ app.get('/api/faq', async (req, res) => {
 
 // Get promo cards
 app.get('/api/promos', async (req, res) => {
-    const cards = await readFromFile('cards.json');
+    const cards = await readFromFile('cards.json', res);
     if (cards) {
         const promoCards = cards.filter(card => card.sale_price !== null);
         res.json(promoCards);
     }
 });
 
-app.listen(PORT);
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 /**
  * Reads JSON data from a given file and returns a JSON object representing that data. Sends a
  * 500 error code and returns null if the given file cannot be read from.
  * @param {string} file - File name
+ * @param {Object} res - response object
  * @returns {JSON} JSON object representing file data
  */
-async function readFromFile(file) {
+async function readFromFile(file, res) {
     try {
         const data = await fs.readFile(file, 'utf8');
         return JSON.parse(data);
     } 
     catch (err) {
-        handleFileError(err);
+        handleFileError(err, res);
         return null;
     }
 }
@@ -184,6 +187,7 @@ async function readFromFile(file) {
  * Sends a 500 error code.
  * @returns {void} 
  */
-function handleFileError(err) {
+function handleFileError(err, res) {
+    console.error(err);
     res.status(500).send(SERVER_ERROR);
 }
