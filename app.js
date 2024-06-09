@@ -72,11 +72,6 @@ app.get('/api/cards/:id', async (req, res, next) => {
 
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
-        if (!req.params.id) {
-            raiseError(Error(), res, next, PARAM_ERROR_CODE, INVALID_ID_ERROR);
-            return;
-        }
-
         const card = cards.find(c => c.id === parseInt(req.params.id));
 
         // Sends a 404 error code and reports if the card ID wasn't found
@@ -145,11 +140,6 @@ app.put('/api/cards/:id', async (req, res, next) => {
 
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
-        if (!req.params.id) {
-            raiseError(Error(), res, next, PARAM_ERROR_CODE, INVALID_ID_ERROR);
-            return;
-        }
-
         const card = cards.find(c => c.id === parseInt(req.params.id));
 
         // Sends a 404 error code and reports if the card ID wasn't found
@@ -188,11 +178,6 @@ app.delete('/api/cards/:id', async (req, res, next) => {
 
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
-        if (!req.params.id) {
-            raiseError(Error(), res, next, PARAM_ERROR_CODE, INVALID_ID_ERROR);
-            return;
-        }
-
         const card = cards.find(c => c.id === parseInt(req.params.id));
 
         // Sends a 404 error code and reports if the card ID wasn't found
