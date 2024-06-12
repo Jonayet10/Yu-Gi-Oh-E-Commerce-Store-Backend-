@@ -97,8 +97,8 @@ app.post('/api/cards', async (req, res, next) => {
         // exception of 'sale_price', the function will send a 400 error code and uses the 
         // middleware error handler to handle the error. In the case of the optional 'sale_price', 
         // it is set to null if the parameter is missing or invalid.
-        CARD_PARAMETERS.forEach((parameter) => {
-            if (!req.body[parameter]) {
+        for (const parameter of CARD_PARAMETERS) {
+            if (!(parameter in req.body)) {
                 if (parameter !== 'sale_price') {
                     const errMsg = `Missing required parameter: ${parameter}.`;
                     raiseError(Error(), res, next, PARAM_ERROR_CODE, errMsg);
@@ -111,7 +111,7 @@ app.post('/api/cards', async (req, res, next) => {
             else {
                 card[parameter] = req.body[parameter];
             }
-        })
+        }
 
         cards.push(card);
 
@@ -214,7 +214,7 @@ app.post('/api/feedback', async (req, res, next) => {
 
         // Checks each parameter's validity. Since these are required parameters, the function
         // will send a 400 error code and uses the middleware error handler to handle the error.
-        FEEDBACK_PARAMETERS.forEach((parameter) => {
+        for (const parameter of FEEDBACK_PARAMETERS) {
             if (!req.body[parameter]) {
                 const errMsg = `Please provide a valid ${parameter}.`;
                 raiseError(Error(), res, next, PARAM_ERROR_CODE, errMsg);
@@ -223,7 +223,7 @@ app.post('/api/feedback', async (req, res, next) => {
             else {
                 feedback[parameter] = req.body[parameter];
             }
-        })
+        }
 
         // Push the new feedback into the existing set of feedbacks
         feedbacks.push(feedback);
