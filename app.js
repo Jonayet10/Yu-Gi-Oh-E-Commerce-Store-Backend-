@@ -173,7 +173,7 @@ app.put('/api/cards/:id', async (req, res, next) => {
 app.delete('/api/cards/:id', async (req, res, next) => {
     // Attempts to read from 'cards.json'. If an error is encountered, cards is
     // guaranteed to be null, and the following if block will not run.
-    const cards = await readFromFile('cards.json', res, next);
+    let cards = await readFromFile('cards.json', res, next);
 
     // Will not run if an error occurred when reading from 'cards.json'.
     if (cards) {
@@ -239,7 +239,7 @@ app.post('/api/feedback', async (req, res, next) => {
         }
 
         res.type('text');
-        res.status(201).send(`Successfully submitted feedback on ${feedback.id}!`);
+        res.status(201).send(`Successfully submitted feedback by ${feedback.name}!`);
     }
 });
 
