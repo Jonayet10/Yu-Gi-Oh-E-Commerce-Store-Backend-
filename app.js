@@ -14,7 +14,6 @@ const PARAM_ERROR_CODE = 400;
 // Error messages
 const SERVER_ERROR = 'Server error. Please try again later.';
 const CARD_ID_ERROR = 'Card ID not found.';
-const INVALID_ID_ERROR = 'Please enter a valid ID.';
 
 // Card parameters
 const CARD_PARAMETERS = ['name', 'type', 'level', 'attribute', 'archetype', 
@@ -114,8 +113,6 @@ app.post('/api/cards', async (req, res, next) => {
             }
         })
 
-        console.log(card);
-
         cards.push(card);
 
         // Converts object to JSON string that includes all parameters and indentations of 2 spaces
@@ -128,7 +125,8 @@ app.post('/api/cards', async (req, res, next) => {
             return;
         }
 
-        res.status(201).json(card);
+        res.type('text');
+        res.status(201).send(`Successfully created the card ${card.name}!`);
     }
 });
 
@@ -166,7 +164,8 @@ app.put('/api/cards/:id', async (req, res, next) => {
             return;
         }
 
-        res.json(card);
+        res.type('text');
+        res.send(`Successfully updated the card ${card.name}!`);
     }
 });
 
@@ -198,7 +197,8 @@ app.delete('/api/cards/:id', async (req, res, next) => {
             return;
         }
 
-        res.json(card);
+        res.type('text');
+        res.send(`Successfully deleted the card ${card.name}!`);
     }
 });
 
@@ -238,7 +238,8 @@ app.post('/api/feedback', async (req, res, next) => {
             return;
         }
 
-        res.status(201).json(feedback);
+        res.type('text');
+        res.status(201).send(`Successfully submitted feedback on ${feedback.id}!`);
     }
 });
 
